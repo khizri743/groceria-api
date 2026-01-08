@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Auth\PinController;
 use App\Http\Controllers\Api\Shop\CartController;
+use App\Http\Controllers\Api\Shop\OrderController;
 use App\Http\Controllers\Api\Shop\ShopController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -102,6 +103,8 @@ Route::delete('/cart/{itemId}', [CartController::class, 'removeItem']);
 
 // CHECKOUT SUMMARY
 Route::post('/checkout/summary', [CartController::class, 'checkoutSummary']);
+
+Route::post('/orders/place', [OrderController::class, 'store']);
 
 // --- Authentication Routes (Breeze Defaults) ---
 require __DIR__.'/auth.php';
