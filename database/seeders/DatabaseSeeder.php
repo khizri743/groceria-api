@@ -7,13 +7,28 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Address;
+use App\Models\Voucher;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Create the "Demo User"
+        // ==========================================
+        // 1. USERS
+        // ==========================================
+        
+        // Super Admin
+        User::create([
+            'name' => 'Super Admin',
+            'email' => 'admin@groceria.com',
+            'password' => Hash::make('password'),
+            'phone' => '+0000000000',
+            'role' => 'admin',
+            'wallet_balance' => 0,
+        ]);
+
+        // Demo Customer (Sarah)
         $user = User::create([
             'name' => 'Sarah Johnson',
             'email' => 'sarah@groceria.com',
@@ -28,14 +43,13 @@ class DatabaseSeeder extends Seeder
             ]
         ]);
 
-        // 2. Add Addresses
+        // Addresses
         Address::create([
             'user_id' => $user->id,
             'label' => 'Home',
             'address_line' => '1234 Park Avenue, Apt 12B, New York, NY',
             'is_default' => true
         ]);
-        
         Address::create([
             'user_id' => $user->id,
             'label' => 'Office',
@@ -43,7 +57,9 @@ class DatabaseSeeder extends Seeder
             'is_default' => false
         ]);
 
-        // 3. Create Categories (Matching Figma Screenshot)
+        // ==========================================
+        // 2. CATEGORIES
+        // ==========================================
         $categories = [
             ['name' => 'Fruits',       'bg_color' => '#FFF3E0', 'image_url' => 'https://cdn-icons-png.flaticon.com/512/3081/3081902.png'],
             ['name' => 'Veggies',      'bg_color' => '#E8F5E9', 'image_url' => 'https://cdn-icons-png.flaticon.com/512/2329/2329903.png'],
@@ -60,72 +76,302 @@ class DatabaseSeeder extends Seeder
             Category::create($cat);
         }
 
-        // 4. Retrieve Category IDs (To link products correctly)
-        // We look them up by name so we don't get "Undefined Variable" errors
-        $catVeggiesId = Category::where('name', 'Veggies')->value('id');
-        $catFruitsId  = Category::where('name', 'Fruits')->value('id');
-        $catMeatsId   = Category::where('name', 'Meats')->value('id');
+        // Helper to get IDs
+        $cats = Category::pluck('id', 'name'); // ['Fruits' => 1, 'Veggies' => 2, ...]
 
-        // 5. Create Products
-        // --- Veggies ---
-        $p1 = Product::create([
-            'category_id' => $catVeggiesId,
-            'name' => 'Broccoli Fresh Green',
-            'description' => 'Fresh hydroponic broccoli rich in vitamins.',
-            'price' => 3.29,
-            'unit' => 'lb',
+        // ==========================================
+        // 3. PRODUCTS
+        // ==========================================
+
+        // --- VEGGIES (Detailed for Demo) ---
+        $corn = Product::create([
+            'category_id' => $cats['Veggies'],
+            'name' => 'Fresh sweet corn',
+            'description' => 'Crisp, juicy, and naturally sweet great for grilling.',
+            'price' => 5.49,
+            'discount_percent' => 0,
+            'unit' => 'each',
             'rating' => 4.8,
-            'image_url' => 'https://cdn-icons-png.flaticon.com/512/234/234092.png',
-            'is_featured' => true
+            'is_featured' => true,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/1147/1147593.png',
+            'gallery_images' => ['https://cdn-icons-png.flaticon.com/512/1147/1147593.png', 'https://cdn-icons-png.flaticon.com/512/765/765544.png'],
+            'tags' => ['Organic', 'Non-GMO', 'Gluten-free', 'Vegan friendly'],
+            'origin_details' => 'Grown in Illinois. Harvested at peak ripeness.',
+            'harvest_date' => now()->subDay(),
+            'specifications' => ['weight_desc' => '250-300 g', 'shelf_life' => '3-4 days', 'type' => 'Whole ear']
+        ]);
+
+        $frozenCorn = Product::create([
+            'category_id' => $cats['Veggies'],
+            'name' => 'Frozen corn kernels',
+            'description' => 'Quick frozen sweet corn.',
+            'price' => 3.49,
+            'discount_percent' => 30,
+            'unit' => 'pack',
+            'rating' => 4.5,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/2329/2329903.png',
+            'tags' => ['Frozen', 'Non-GMO'],
+            'specifications' => ['weight_desc' => '454 g', 'shelf_life' => '6 months', 'type' => 'Frozen']
         ]);
 
         Product::create([
-            'category_id' => $catVeggiesId,
-            'name' => 'Organic Tomato Roma',
-            'description' => 'Juicy red tomatoes perfect for salads.',
-            'price' => 2.49,
-            'unit' => 'lb',
-            'rating' => 4.5,
-            'image_url' => 'https://cdn-icons-png.flaticon.com/512/1202/1202125.png',
-            'is_featured' => false
+            'category_id' => $cats['Veggies'],
+            'name' => 'Baby Spinach',
+            'description' => 'Organic local farm spinach.',
+            'price' => 1.99,
+            'discount_percent' => 30,
+            'unit' => 'pack',
+            'rating' => 4.8,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/234/234092.png',
+            'tags' => ['vegan', 'organic', 'low-carb']
         ]);
 
-        // --- Fruits ---
-        $p3 = Product::create([
-            'category_id' => $catFruitsId,
+        Product::create([
+            'category_id' => $cats['Veggies'],
+            'name' => 'Red Bell Pepper',
+            'description' => 'Sweet and crunchy red peppers.',
+            'price' => 0.99,
+            'unit' => 'each',
+            'rating' => 4.7,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/2909/2909787.png',
+            'tags' => ['vegan', 'fresh']
+        ]);
+
+        // --- FRUITS ---
+        $banana = Product::create([
+            'category_id' => $cats['Fruits'],
             'name' => 'Banana Cavendish',
-            'description' => 'Sweet and creamy bananas from local farms.',
+            'description' => 'Sweet and creamy bananas.',
             'price' => 1.29,
             'unit' => 'bunch',
             'rating' => 4.9,
+            'is_featured' => true,
             'image_url' => 'https://cdn-icons-png.flaticon.com/512/2829/2829873.png',
-            'is_featured' => true
+            'tags' => ['organic', 'vegan']
         ]);
 
         Product::create([
-            'category_id' => $catFruitsId,
-            'name' => 'Red Apple',
-            'description' => 'Crisp and sweet apples.',
-            'price' => 4.99,
-            'unit' => 'kg',
-            'rating' => 4.7,
-            'image_url' => 'https://cdn-icons-png.flaticon.com/512/415/415733.png',
-            'is_featured' => false
-        ]);
-
-        // --- Meat ---
-        Product::create([
-            'category_id' => $catMeatsId,
-            'name' => 'Chicken Breast',
-            'description' => 'Boneless skinless chicken breast.',
-            'price' => 8.99,
+            'category_id' => $cats['Fruits'],
+            'name' => 'Green Apple (Granny Smith)',
+            'description' => 'Tart and crisp green apples.',
+            'price' => 3.99,
             'unit' => 'kg',
             'rating' => 4.6,
-            'image_url' => 'https://cdn-icons-png.flaticon.com/512/10700/10700990.png',
-            'is_featured' => true
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/415/415733.png',
+            'tags' => ['fresh', 'vegan']
         ]);
 
-        // 6. Add Favorites
-        $user->favorites()->attach([$p1->id, $p3->id]);
+        Product::create([
+            'category_id' => $cats['Fruits'],
+            'name' => 'Strawberries',
+            'description' => 'Sweet red strawberries.',
+            'price' => 4.99,
+            'discount_percent' => 10,
+            'unit' => 'pack',
+            'rating' => 4.8,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/590/590772.png',
+            'harvest_date' => now()->subDays(2),
+            'tags' => ['fresh', 'organic']
+        ]);
+
+        // --- MEATS ---
+        Product::create([
+            'category_id' => $cats['Meats'],
+            'name' => 'Premium Ribeye Steak',
+            'description' => 'Grass-fed beef ribeye steak.',
+            'price' => 24.99,
+            'unit' => 'kg',
+            'rating' => 5.0,
+            'is_featured' => true,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/3143/3143643.png',
+            'tags' => ['grass-fed', 'keto'],
+            'specifications' => ['weight_desc' => '1kg', 'type' => 'Beef', 'storage' => 'Refrigerated']
+        ]);
+
+        Product::create([
+            'category_id' => $cats['Meats'],
+            'name' => 'Chicken Breast Fillet',
+            'description' => 'Lean boneless chicken breast.',
+            'price' => 9.50,
+            'unit' => 'kg',
+            'rating' => 4.7,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/10700/10700990.png',
+            'tags' => ['lean', 'poultry']
+        ]);
+
+        // --- SEAFOOD ---
+        Product::create([
+            'category_id' => $cats['Seafood'],
+            'name' => 'Atlantic Salmon Fillet',
+            'description' => 'Fresh Atlantic salmon, rich in Omega-3.',
+            'price' => 15.99,
+            'unit' => 'lb',
+            'rating' => 4.9,
+            'is_featured' => true,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png',
+            'harvest_date' => now()->subDays(1),
+            'tags' => ['fresh', 'omega-3']
+        ]);
+
+        Product::create([
+            'category_id' => $cats['Seafood'],
+            'name' => 'Tiger Prawns (Large)',
+            'description' => 'Juicy large prawns, perfect for grilling.',
+            'price' => 18.99,
+            'unit' => 'kg',
+            'rating' => 4.8,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/1998/1998064.png',
+            'tags' => ['frozen']
+        ]);
+
+        // --- DAIRY ---
+        Product::create([
+            'category_id' => $cats['Dairy & Eggs'],
+            'name' => 'Whole Milk',
+            'description' => 'Farm fresh whole milk.',
+            'price' => 1.99,
+            'unit' => 'bottle',
+            'rating' => 4.5,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/2405/2405452.png',
+            'tags' => ['fresh', 'calcium']
+        ]);
+
+        Product::create([
+            'category_id' => $cats['Dairy & Eggs'],
+            'name' => 'Cheddar Cheese Block',
+            'description' => 'Aged cheddar cheese.',
+            'price' => 4.49,
+            'unit' => 'block',
+            'rating' => 4.6,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/8202/8202495.png',
+            'tags' => ['aged']
+        ]);
+
+        Product::create([
+            'category_id' => $cats['Dairy & Eggs'],
+            'name' => 'Free Range Eggs',
+            'description' => 'Large brown eggs, dozen.',
+            'price' => 3.29,
+            'unit' => 'dozen',
+            'rating' => 4.8,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/837/837560.png',
+            'tags' => ['organic', 'free-range']
+        ]);
+
+        // --- BAKERY ---
+        Product::create([
+            'category_id' => $cats['Bakery'],
+            'name' => 'Sourdough Bread',
+            'description' => 'Artisan sourdough loaf.',
+            'price' => 3.99,
+            'unit' => 'loaf',
+            'rating' => 4.7,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/992/992747.png',
+            'tags' => ['freshly-baked']
+        ]);
+
+        Product::create([
+            'category_id' => $cats['Bakery'],
+            'name' => 'Chocolate Croissant',
+            'description' => 'Buttery croissant with rich chocolate.',
+            'price' => 2.50,
+            'unit' => 'each',
+            'rating' => 4.9,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/3014/3014522.png',
+            'tags' => ['sweet', 'pastry']
+        ]);
+
+        // --- PANTRY ---
+        Product::create([
+            'category_id' => $cats['Pantry'],
+            'name' => 'Olive Oil (Extra Virgin)',
+            'description' => 'Cold pressed olive oil.',
+            'price' => 12.99,
+            'unit' => 'bottle',
+            'rating' => 4.8,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/737/737967.png',
+            'tags' => ['imported', 'organic']
+        ]);
+
+        Product::create([
+            'category_id' => $cats['Pantry'],
+            'name' => 'Basmati Rice',
+            'description' => 'Long grain aromatic rice.',
+            'price' => 8.99,
+            'unit' => 'bag',
+            'rating' => 4.6,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/2829/2829853.png',
+            'tags' => ['gluten-free']
+        ]);
+
+        // --- BEVERAGES ---
+        Product::create([
+            'category_id' => $cats['Beverages'],
+            'name' => 'Orange Juice',
+            'description' => '100% freshly squeezed orange juice.',
+            'price' => 3.99,
+            'unit' => 'bottle',
+            'rating' => 4.7,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/2442/2442019.png',
+            'tags' => ['no-sugar', 'vitamin-c']
+        ]);
+
+        Product::create([
+            'category_id' => $cats['Beverages'],
+            'name' => 'Cola Soda',
+            'description' => 'Refreshing carbonated soft drink.',
+            'price' => 1.50,
+            'discount_percent' => 10,
+            'unit' => 'can',
+            'rating' => 4.2,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png',
+            'tags' => ['chilled']
+        ]);
+
+        // --- SNACKS ---
+        Product::create([
+            'category_id' => $cats['Snacks'],
+            'name' => 'Salted Potato Chips',
+            'description' => 'Classic salted potato chips.',
+            'price' => 1.99,
+            'unit' => 'bag',
+            'rating' => 4.4,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/2553/2553691.png',
+            'tags' => ['crispy']
+        ]);
+
+        Product::create([
+            'category_id' => $cats['Snacks'],
+            'name' => 'Roasted Almonds',
+            'description' => 'Healthy salted roasted almonds.',
+            'price' => 5.99,
+            'unit' => 'pack',
+            'rating' => 4.8,
+            'image_url' => 'https://cdn-icons-png.flaticon.com/512/1269/1269032.png',
+            'tags' => ['healthy', 'protein']
+        ]);
+
+        // ==========================================
+        // 4. FAVORITES
+        // ==========================================
+        $user->favorites()->attach([$corn->id, $banana->id]);
+
+        Voucher::create([
+    'code' => 'WELCOME20',
+    'description' => '20% OFF First Order',
+    'type' => 'percent',
+    'value' => 20.00, // 20%
+    'expires_at' => now()->addMonth()
+]);
+
+Voucher::create([
+    'code' => 'SAVE5',
+    'description' => '$5 OFF Shipping',
+    'type' => 'fixed',
+    'value' => 5.00, // $5 flat off
+    'expires_at' => now()->addMonth()
+]);
     }
+
+    
 }
