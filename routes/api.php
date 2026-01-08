@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Auth\PinController;
 use App\Http\Controllers\Api\Shop\CartController;
 use App\Http\Controllers\Api\Shop\ShopController;
 use Illuminate\Http\Request;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\AddressController;
 use App\Http\Controllers\Api\User\FavoriteController;
+use App\Http\Controllers\Api\User\PaymentMethodController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +60,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // 4. Favorites / Wishlist (Screen: My Favorites)
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle', [FavoriteController::class, 'toggle']);
+
+    // Payment Methods (Saved Cards)
+    Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
+    Route::post('/payment-methods', [PaymentMethodController::class, 'store']);
+
+    // Verify PIN
+    Route::post('/auth/verify-pin', [PinController::class, 'verify']);
 
 });
 

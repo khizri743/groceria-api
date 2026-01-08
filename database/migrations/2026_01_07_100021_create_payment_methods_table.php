@@ -15,6 +15,10 @@ public function up()
     Schema::create('payment_methods', function (Blueprint $table) {
         $table->id();
         $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+        
+        // Added this line to match the Screenshot input
+        $table->string('card_holder_name'); 
+        
         $table->string('brand'); // Visa, Mastercard
         $table->string('last_four'); // 4242
         $table->string('expiry_date'); // 06/27
