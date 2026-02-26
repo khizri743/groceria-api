@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\PinController;
+use App\Http\Controllers\Api\Content\ArticleController;
 use App\Http\Controllers\Api\Shop\CartController;
+use App\Http\Controllers\Api\Shop\ChatController;
 use App\Http\Controllers\Api\Shop\OrderController;
 use App\Http\Controllers\Api\Shop\ShopController;
 use Illuminate\Http\Request;
@@ -12,6 +14,8 @@ use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\AddressController;
 use App\Http\Controllers\Api\User\FavoriteController;
 use App\Http\Controllers\Api\User\PaymentMethodController;
+use App\Http\Controllers\Api\User\WalletController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +29,7 @@ use App\Http\Controllers\Api\User\PaymentMethodController;
 */
 
 
-// ADMIN ROUTES (Only role='admin')
+// ADMIN ROUTES
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     
     // Create, Update, Delete Categories
@@ -40,35 +44,51 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
 });
 
-// --- Protected Routes (User must be logged in) ---
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+    ->middleware('guest:sanctum')
+    ->name('password.email');
+
+// --- Protected Routes ---
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    // 1. Default User Data (Basic)
+    // 1. Default User Data
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
-    // 2. Profile & Settings (Screen: Profile, Edit Profile, Settings)
-    Route::get('/profile', [ProfileController::class, 'show']);             // Get details + settings
-    Route::post('/profile/update', [ProfileController::class, 'update']);   // Upload Avatar / Change Name
-    Route::post('/settings', [ProfileController::class, 'updateSettings']); // Toggle Dark Mode / Notifications
+    // 2. Profile & Settings
+    Route::get('/profile', [ProfileController::class, 'show']);          
+    Route::post('/profile/update', [ProfileController::class, 'update']);   
+    Route::post('/settings', [ProfileController::class, 'updateSettings']);
 
-    // 3. Address Book (Screen: Addresses, Add Address)
+    // 3. Address Book
     Route::get('/addresses', [AddressController::class, 'index']);
     Route::post('/addresses', [AddressController::class, 'store']);
     Route::delete('/addresses/{address}', [AddressController::class, 'destroy']);
 
-    // 4. Favorites / Wishlist (Screen: My Favorites)
+    // 4. Favorites / Wishlist 
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/favorites/toggle', [FavoriteController::class, 'toggle']);
 
-    // Payment Methods (Saved Cards)
+    // Payment Methods 
     Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
     Route::post('/payment-methods', [PaymentMethodController::class, 'store']);
+
+     // Wallet
+    Route::get('/wallet', [WalletController::class, 'show']);
+    Route::post('/wallet/top-up', [WalletController::class, 'topUp']);
 
     // Verify PIN
     Route::post('/auth/verify-pin', [PinController::class, 'verify']);
 
+    Route::get('/orders', [OrderController::class, 'index']); 
+
+    Route::post('/orders/{id}/tip', [OrderController::class, 'addTip']);
+    Route::post('/orders/{id}/review', [OrderController::class, 'submitReview']);
+
+    // CHAT
+    Route::get('/orders/{id}/chat', [ChatController::class, 'index']); 
+    Route::post('/orders/{id}/chat', [ChatController::class, 'store']); 
 });
 
 // --- Public Routes --- //
@@ -76,27 +96,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 // Categories Page
 Route::get('/categories', [ShopController::class, 'categories']);
-Route::get('/categories/{id}', [ShopController::class, 'showCategory']); // Get Single
+Route::get('/categories/{id}', [ShopController::class, 'showCategory']); 
 Route::get('/search', [ShopController::class, 'search']);
 
 
 // Product Routes
 Route::get('/products/{id}', [ShopController::class, 'showProduct']);
 Route::post('/products/compare', [ShopController::class, 'compare']);
-Route::post('/products/recent', [ShopController::class, 'recent']); // POST because we send an array of IDs
+Route::post('/products/recent', [ShopController::class, 'recent']); 
 // Categories Page
 Route::get('/categories', [ShopController::class, 'categories']);
 Route::get('/categories/{id}', [ShopController::class, 'showCategory']);
-Route::get('/categories/{id}/products', [ShopController::class, 'getCategoryProducts']); // Don't forget this one we made earlier!
+Route::get('/categories/{id}/products', [ShopController::class, 'getCategoryProducts']);
 Route::get('/search', [ShopController::class, 'search']);
 
 // Product Routes
-Route::get('/products', [ShopController::class, 'products']); // <--- ADD THIS LINE
+Route::get('/products', [ShopController::class, 'products']); 
 Route::get('/products/{id}', [ShopController::class, 'showProduct']);
 Route::post('/products/compare', [ShopController::class, 'compare']);
 Route::post('/products/recent', [ShopController::class, 'recent']);
 
-// CART (Accessible by Guest OR User)
+// CART
 Route::get('/cart', [CartController::class, 'index']);
 Route::post('/cart/add', [CartController::class, 'addToCart']);
 Route::delete('/cart/{itemId}', [CartController::class, 'removeItem']);
@@ -105,6 +125,13 @@ Route::delete('/cart/{itemId}', [CartController::class, 'removeItem']);
 Route::post('/checkout/summary', [CartController::class, 'checkoutSummary']);
 
 Route::post('/orders/place', [OrderController::class, 'store']);
+Route::get('/orders/{id}', [OrderController::class, 'show']);
 
-// --- Authentication Routes (Breeze Defaults) ---
+// ARTICLES
+Route::get('/articles', [ArticleController::class, 'index']); 
+Route::get('/articles/{id}', [ArticleController::class, 'show']); 
+
+
+
+// --- Authentication Routes ---
 require __DIR__.'/auth.php';

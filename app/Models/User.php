@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable
 {
@@ -63,6 +64,13 @@ class User extends Authenticatable
 public function favorites() {
     return $this->belongsToMany(Product::class, 'favorites', 'user_id', 'product_id')->withTimestamps();
 }
+
+ protected function avatarUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? url('storage/' . $value) : null,
+        );
+    }
 
 public function paymentMethods() {
     return $this->hasMany(PaymentMethod::class);

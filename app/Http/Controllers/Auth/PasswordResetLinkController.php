@@ -2,13 +2,16 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OtpCodeMail;
 // use App\Mail\OtpCodeMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use App\Models\User;
 use App\Models\OtpCode; // Import your model
 use Carbon\Carbon;
-// use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Mail;
+
+use Illuminate\Support\Facades\Log;
 
 class PasswordResetLinkController extends Controller
 {
@@ -40,11 +43,12 @@ class PasswordResetLinkController extends Controller
         ]);
 
 
-        // try {
-        //     Mail::to($request->email)->send(new OtpCodeMail($code));
-        // } catch (\Exception $e) {
-        //     return response()->json(['message' => 'Failed to send email. Check SMTP settings.'], 500);
-        // }
+        try {
+            Mail::to($request->email)->send(new OtpCodeMail($code));
+        } catch (\Exception $e) {
+            Log::error("Email Error: " . $e->getMessage());
+            return response()->json(['message' => 'Failed to send email. Check SMTP settings.'], 500);
+        }
 
         // 4. TODO: Send Email/SMS here
         

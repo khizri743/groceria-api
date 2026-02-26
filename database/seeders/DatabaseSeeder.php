@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Address;
 use App\Models\Voucher;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB; 
 
 class DatabaseSeeder extends Seeder
 {
@@ -77,13 +78,13 @@ class DatabaseSeeder extends Seeder
         }
 
         // Helper to get IDs
-        $cats = Category::pluck('id', 'name'); // ['Fruits' => 1, 'Veggies' => 2, ...]
+        $cats = Category::pluck('id', 'name'); 
 
         // ==========================================
         // 3. PRODUCTS
         // ==========================================
 
-        // --- VEGGIES (Detailed for Demo) ---
+        // --- VEGGIES ---
         $corn = Product::create([
             'category_id' => $cats['Veggies'],
             'name' => 'Fresh sweet corn',
@@ -356,22 +357,154 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         $user->favorites()->attach([$corn->id, $banana->id]);
 
+        // ==========================================
+        // 5. VOUCHERS
+        // ==========================================
         Voucher::create([
-    'code' => 'WELCOME20',
-    'description' => '20% OFF First Order',
-    'type' => 'percent',
-    'value' => 20.00, // 20%
-    'expires_at' => now()->addMonth()
-]);
+            'code' => 'WELCOME20',
+            'description' => '20% OFF First Order',
+            'type' => 'percent',
+            'value' => 20.00, 
+            'expires_at' => now()->addMonth()
+        ]);
 
-Voucher::create([
-    'code' => 'SAVE5',
-    'description' => '$5 OFF Shipping',
-    'type' => 'fixed',
-    'value' => 5.00, // $5 flat off
-    'expires_at' => now()->addMonth()
-]);
+        Voucher::create([
+            'code' => 'SAVE5',
+            'description' => '$5 OFF Shipping',
+            'type' => 'fixed',
+            'value' => 5.00,
+            'expires_at' => now()->addMonth()
+        ]);
+
+        // ==========================================
+        // 6. DRIVERS
+        // ==========================================
+        $driverJohn = \App\Models\Driver::create([
+            'name' => 'John M.',
+            'phone' => '+1234567890',
+            'vehicle_type' => 'Groceria Express Van',
+            'avatar_url' => 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+            'status' => 'busy',
+            // REMOVED GPS coordinates to match your database
+        ]);
+
+        // ==========================================
+        // 7. ORDERS
+        // ==========================================
+
+        // Order 1: ACTIVE (Assigned to John)
+        $activeOrder = \App\Models\Order::create([
+            'user_id' => $user->id,
+            'driver_id' => $driverJohn->id, 
+            'order_number' => '#4526',
+            'status' => 'shipped',
+            'total_amount' => 16.22,
+            'delivery_fee' => 5.00,
+            'discount_amount' => 1.25,
+            'payment_method' => 'groceria_pay',
+            'payment_status' => 'paid',
+            'delivery_address' => '1234 Park Avenue, Apt 12B, New York, NY',
+            'delivery_date' => now(),
+            'points_earned' => 112,
+            'estimated_arrival_time' => '5:30 - 6:00 PM'
+        ]);
+
+        \App\Models\OrderItem::create(['order_id' => $activeOrder->id, 'product_id' => $corn->id, 'quantity' => 1, 'price' => 5.49]);
+        \App\Models\OrderItem::create(['order_id' => $activeOrder->id, 'product_id' => $frozenCorn->id, 'quantity' => 2, 'price' => 3.49]);
+
+        // Order 2: PAST (Delivered)
+        $pastOrder = \App\Models\Order::create([
+            'user_id' => $user->id,
+            'driver_id' => $driverJohn->id,
+            'order_number' => '#4521',
+            'status' => 'delivered',
+            'total_amount' => 18.99,
+            'delivery_fee' => 5.00,
+            'payment_method' => 'card',
+            'payment_status' => 'paid',
+            'delivery_address' => '1234 Park Avenue, Apt 12B, New York, NY',
+            'delivery_date' => now()->subDays(5),
+            'points_earned' => 180
+        ]);
+        
+        \App\Models\OrderItem::create(['order_id' => $pastOrder->id, 'product_id' => $banana->id, 'quantity' => 1, 'price' => 1.99]);
+
+        // ==========================================
+        // 8. CHAT HISTORY
+        // ==========================================
+        DB::table('messages')->insert([
+            'order_id' => $activeOrder->id,
+            'user_id' => null,
+            'driver_id' => $driverJohn->id,
+            'message' => 'Hello! I have your order and I am on my way 🚗',
+            'sender_type' => 'driver',
+            'created_at' => now()->subMinutes(15),
+        ]);
+
+        DB::table('messages')->insert([
+            'order_id' => $activeOrder->id,
+            'user_id' => null,
+            'driver_id' => $driverJohn->id,
+            'message' => 'I will be there in about 12 minutes',
+            'sender_type' => 'driver',
+            'created_at' => now()->subMinutes(14),
+        ]);
+
+        DB::table('messages')->insert([
+            'order_id' => $activeOrder->id,
+            'user_id' => $user->id,
+            'driver_id' => $driverJohn->id,
+            'message' => 'I am waiting outside',
+            'sender_type' => 'user',
+            'created_at' => now()->subMinutes(5),
+        ]);
+
+
+        // ... previous chat/order code ...
+
+        // ==========================================
+        // 11. ARTICLES
+        // ==========================================
+        
+        // Article 1: The one in the Screenshot
+        \App\Models\Article::create([
+            'title' => '5 Veggies to Boost Your Immune System',
+            'image_url' => 'https://cdn.pixabay.com/photo/2016/09/15/19/24/salad-1672505_1280.jpg',
+            'author_name' => 'Dr. Sarah Chen',
+            'read_time' => '4 min read',
+            'published_date' => '2024-10-15',
+            'tags' => ['Nutrition', 'Health'],
+            'content' => '
+                <p>Maintaining a strong immune system is essential for overall health...</p>
+                <h3>1. Spinach</h3>
+                <p>Rich in vitamin C, beta-carotene, and antioxidants, spinach is a powerhouse...</p>
+                <h3>2. Broccoli</h3>
+                <p>Packed with vitamins A, C, and E, as well as fiber and antioxidants...</p>
+                <h3>3. Bell Peppers</h3>
+                <p>Red bell peppers contain twice as much vitamin C as citrus fruits...</p>
+            '
+        ]);
+
+        // Article 2: Storage Tips
+        \App\Models\Article::create([
+            'title' => 'How to Keep Fruits Fresh Longer',
+            'image_url' => 'https://cdn.pixabay.com/photo/2017/05/07/08/56/pancakes-2291908_1280.jpg',
+            'author_name' => 'Mike Ross',
+            'read_time' => '3 min read',
+            'published_date' => '2024-10-10',
+            'tags' => ['Storage Tips', 'Hacks'],
+            'content' => '<p>Stop throwing away spoiled fruit with these simple storage hacks...</p>'
+        ]);
+
+        // Article 3: Recipes
+        \App\Models\Article::create([
+            'title' => 'Quick & Healthy Breakfast Ideas',
+            'image_url' => 'https://cdn.pixabay.com/photo/2016/11/06/23/31/breakfast-1804457_1280.jpg',
+            'author_name' => 'Chef Ramsay',
+            'read_time' => '6 min read',
+            'published_date' => '2024-10-05',
+            'tags' => ['Recipes', 'Breakfast'],
+            'content' => '<p>Start your day right with these protein-packed breakfast bowls...</p>'
+        ]);
     }
-
-    
 }
