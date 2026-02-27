@@ -73,4 +73,33 @@ class ProfileController extends Controller
 
         return response()->json(['message' => 'Settings saved', 'settings' => $user->settings]);
     }
+
+    public function destroy(Request $request)
+    {
+        $user = $request->user();
+
+        // 1. Delete Avatar Image
+        $avatarPath = $user->getRawOriginal('avatar_url'); 
+        if ($avatarPath) {
+            Storage::disk('public')->delete($avatarPath);
+        }
+
+        // 2. Revoke Tokens
+        $user->tokens()->delete();
+
+        // 3. CLEANUP: Delete related data manually to fix Foreign Key Errors
+        // These tables were created without "onDelete('cascade')" in your migrations
+        \Illuminate\Support\Facades\DB::table('reviews')->where('user_id', $user->id)->delete();
+        \Illuminate\Support\Facades\DB::table('messages')->where('user_id', $user->id)->delete(); // <--- NEW LINE
+        \Illuminate\Support\Facades\DB::table('otp_codes')->where('identifier', $user->email)->delete();
+
+        // 4. Delete the User Record
+        // Orders will stay (user_id becomes NULL automatically).
+        // Addresses/Carts/Favorites/PaymentMethods will delete automatically.
+        $user->delete();
+
+        return response()->json([
+            'message' => 'Account deleted successfully.'
+        ]);
+    }
 }

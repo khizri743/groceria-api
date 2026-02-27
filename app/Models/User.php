@@ -68,8 +68,15 @@ public function favorites() {
  protected function avatarUrl(): Attribute
     {
         return Attribute::make(
+            // GET: Convert filename to Full URL for API response
             get: fn ($value) => $value ? url('storage/' . $value) : null,
+            
+            // SET: Save the raw filename to database (Fixes the Readonly error)
+            set: fn ($value) => $value, 
         );
+        // return Attribute::make(
+        //     get: fn ($value) => $value ? url('storage/' . $value) : null,
+        // );
     }
 
 public function paymentMethods() {

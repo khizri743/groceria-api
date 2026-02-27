@@ -60,7 +60,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);          
     Route::post('/profile/update', [ProfileController::class, 'update']);   
     Route::post('/settings', [ProfileController::class, 'updateSettings']);
-
+    Route::delete('/profile/delete', [ProfileController::class, 'destroy']);
+    
     // 3. Address Book
     Route::get('/addresses', [AddressController::class, 'index']);
     Route::post('/addresses', [AddressController::class, 'store']);
