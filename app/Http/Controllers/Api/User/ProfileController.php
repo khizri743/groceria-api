@@ -90,7 +90,7 @@ class ProfileController extends Controller
         // 3. CLEANUP: Delete related data manually to fix Foreign Key Errors
         // These tables were created without "onDelete('cascade')" in your migrations
         \Illuminate\Support\Facades\DB::table('reviews')->where('user_id', $user->id)->delete();
-        \Illuminate\Support\Facades\DB::table('messages')->where('user_id', $user->id)->delete(); // <--- NEW LINE
+        \Illuminate\Support\Facades\DB::table('messages')->where('user_id', $user->id)->delete();
         \Illuminate\Support\Facades\DB::table('otp_codes')->where('identifier', $user->email)->delete();
 
         // 4. Delete the User Record

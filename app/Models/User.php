@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -64,6 +66,11 @@ class User extends Authenticatable
 public function favorites() {
     return $this->belongsToMany(Product::class, 'favorites', 'user_id', 'product_id')->withTimestamps();
 }
+public function canAccessPanel(Panel $panel): bool
+    {
+        // Only allow users with role 'admin' to access the dashboard
+        return $this->role === 'admin';
+    }
 
  protected function avatarUrl(): Attribute
     {
