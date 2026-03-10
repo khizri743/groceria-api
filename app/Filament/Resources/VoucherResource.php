@@ -29,9 +29,22 @@ class VoucherResource extends Resource
     // Limit access to Admins only (Staff cannot create coupons by default to prevent fraud)
     public static function canViewAny(): bool
     {
-         $user = auth()->user();
-    
-    return $user && $user->role === 'admin';
+        return auth()->user()->hasPermission('vouchers', 'read');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasPermission('vouchers', 'write');
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return auth()->user()->hasPermission('vouchers', 'write');
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return auth()->user()->hasPermission('vouchers', 'write');
     }
 
     public static function form(Form $form): Form
@@ -120,8 +133,8 @@ class VoucherResource extends Resource
     {
         return[
             'index' => Pages\ListVouchers::route('/'),
-            'create' => Pages\CreateVoucher::route('/create'),
-            'edit' => Pages\EditVoucher::route('/{record}/edit'),
+            // 'create' => Pages\CreateVoucher::route('/create'),
+            // 'edit' => Pages\EditVoucher::route('/{record}/edit'),
         ];
     }
 }

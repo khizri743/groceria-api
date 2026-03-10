@@ -101,6 +101,26 @@ class CustomerResource extends Resource
             'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('customers', 'read');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasPermission('customers', 'write');
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return auth()->user()->hasPermission('customers', 'write');
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        return auth()->user()->hasPermission('customers', 'write');
+    }
 }
 
 // class CustomerResource extends Resource

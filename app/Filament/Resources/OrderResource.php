@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\SelectColumn; 
 
 class OrderResource extends Resource
 {
@@ -56,23 +57,34 @@ class OrderResource extends Resource
 
                 TextColumn::make('total_amount')->money('USD'),
                 
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'delivered' => 'success',
-                        'processing' => 'info',
-                        'shipped'    => 'primary',
-                        'pending'    => 'gray',
-                        'cancelled'  => 'danger',
-                        default => 'gray',
-                    }),
+                // TextColumn::make('status')
+                //     ->badge()
+                //     ->color(fn (string $state): string => match ($state) {
+                //         'delivered' => 'success',
+                //         'processing' => 'info',
+                //         'shipped'    => 'primary',
+                //         'pending'    => 'gray',
+                //         'cancelled'  => 'danger',
+                //         default => 'gray',
+                //     }),
                 
+                SelectColumn::make('status')
+               ->options([
+                   'pending' => 'Pending',
+                   'processing' => 'Processing',
+                   'shipped' => 'Shipped',
+                   'delivered' => 'Delivered',
+                   'cancelled' => 'Cancelled',
+               ])
+               ->selectablePlaceholder(false), // Forces them to pick a valid status
+
                 // TextColumn::make('driver.name')->label('Driver'),
                 TextColumn::make('created_at')->dateTime(),
+
             ])
             ->filters([])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -90,7 +102,7 @@ class OrderResource extends Resource
     {
         return [
             'index' => Pages\ListOrders::route('/'),
-            'create' => Pages\CreateOrder::route('/create'),
+            // 'create' => Pages\CreateOrder::route('/create'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
     }
